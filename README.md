@@ -26,3 +26,40 @@ API/                                    # Root project
     │   ├── GetRequest.feature           # Test scenarios for GET requests
     │   ├── PostRequest.feature          # Test scenarios for POST requests
     │   └── PutRequest.feature           # Test scenarios for PUT requests
+
+# Execute on CI Pipeline - Jenkins
+pipeline {
+    agent any
+    tools {
+        maven 'Maven 3.6.3'  // check version
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git '[https://github.com/seu-repositorio.git](https://github.com/Marcoxvid/API.git)'
+            }
+        }
+        stage('Build & Test') {
+            steps {
+                sh 'mvn clean test'
+            }
+        }
+        stage('Generate Report') {
+            steps {
+                publishHTML(target: [
+                    reportName: 'Cucumber HTML Report',
+                    reportDir: 'target/cucumber-reports',
+                    reportFiles: 'index.html',
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true
+                ])
+            }
+        }
+    }
+    post {
+        always {
+            junit 'target/surefire-reports/*.xml'
+            cleanWs()  
+        }
+    }
+}
